@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://redwire-db:3306/redwire
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: redwire
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - redwire-db
+    restart: always
+
+  redwire-db:
+    image: mysql:8.0
+    container_name: redwire-db
+    environment:
+      MYSQL_ROOT_PASSWORD: redwire
+      MYSQL_DATABASE: redwire
+    ports:
+      - "3306:3306"
+    volumes:
+      - redwire-data:/var/lib/mysql
+    restart: always
+
+volumes:
+  redwire-data:
