@@ -5,16 +5,26 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
 public class ClientDto {
 
 	private Long id;
+	@NotBlank
 	private String firstname;
+	@NotBlank
 	private String lastname;
+	@Email
+	@NotBlank
 	private String email;
+	@NotBlank
 	private String phone;
+	@NotBlank
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	@Size(min = 12)
 	private String clearPassword;
 	private StatusEnum status = StatusEnum.ACTIVE;
 	private LocalDateTime createdAt;
@@ -82,6 +92,10 @@ public class ClientDto {
 	
 	public String getClearPassword() {
 		return clearPassword;
+	}
+	
+	public void setClearPassword(String clearPassword) {
+		this.clearPassword = clearPassword;
 	}
 	
 	public StatusEnum getStatus() {

@@ -21,6 +21,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import wanderer2357.redwire.annotation.Patchable;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
 @Entity
@@ -41,23 +42,27 @@ public class ClientEntity {
 	@Column(nullable = false)
 	@NotBlank
 	@Size(max = 50)
+	@Patchable
 	private String firstname;
 	
 	@Column(nullable = false)
 	@NotBlank
 	@Size(max = 50)
+	@Patchable
 	private String lastname;
 	
 	@Column(nullable = false, unique = true)
 	@NotBlank
 	@Size(max = 254)
 	@Email
+	@Patchable
 	private String email;
 	
 	@Column(nullable = false, unique = true)
 	@NotBlank
 	@Size(max = 20)
 	@Pattern(regexp = "^[0-9]+$", message = "Phone number must be numeric")
+	@Patchable
 	private String phone;
 	
 	@Column(nullable = false)
@@ -67,6 +72,7 @@ public class ClientEntity {
 	
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
+	@Patchable
 	private StatusEnum status = StatusEnum.ACTIVE;
 	
 	@CreationTimestamp
