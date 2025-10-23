@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import wanderer2357.redwire.payload.RedwireResponsePayload;
-import wanderer2357.redwire.service.ClientService;
 
 @ControllerAdvice
 public class RedwireExceptionHandler {

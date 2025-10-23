@@ -15,6 +15,8 @@ import org.springframework.validation.annotation.Validated;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.validation.Valid;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import wanderer2357.redwire.annotation.Patchable;
 import wanderer2357.redwire.dto.ClientDto;
 import wanderer2357.redwire.exception.InvalidPatchRequestException;
@@ -23,7 +25,6 @@ import wanderer2357.redwire.mapper.ClientDtoMapper;
 import wanderer2357.redwire.mapper.ClientEntityMapper;
 import wanderer2357.redwire.model.ClientEntity;
 import wanderer2357.redwire.repository.ClientRepository;
-import wanderer2357.redwire.util.EmailUtil;
 import wanderer2357.redwire.util.PhoneUtil;
 
 import org.slf4j.Logger;
@@ -40,20 +41,19 @@ public class ClientService {
 	private final ClientEntityMapper clientEntityMapper;
 	private final ObjectMapper objectMapper;
 	private final static Map<String, Field> PATCH_ALLOWED_FIELDS;
-	private final EmailUtil emailUtil;
 	private final PhoneUtil phoneUtil;
+	private final Validator validator 
+		= Validation.buildDefaultValidatorFactory().getValidator();
 	
 	public ClientService(ClientRepository clientRepository,
 			ClientDtoMapper clientDtoMapper,
 			ClientEntityMapper clientEntityMapper,
 			ObjectMapper objectMapper,
-			EmailUtil emailUtil,
 			PhoneUtil phoneUtil) {
 		this.clientRepository = clientRepository;
 		this.clientDtoMapper = clientDtoMapper;
 		this.clientEntityMapper = clientEntityMapper;
 		this.objectMapper = objectMapper;
-		this.emailUtil = emailUtil;
 		this.phoneUtil = phoneUtil;
 	}
 	
@@ -77,7 +77,7 @@ public class ClientService {
         		.map(clientDtoMapper)
         		.orElseThrow(() -> {
                     log.warn("Client ID {} not found", id);
-                    return new ResourceNotFoundException("Could not find specified client");
+                    throw new ResourceNotFoundException("Could not find specified client (id : " + id + ")");
                 });
     }
 	
@@ -85,9 +85,8 @@ public class ClientService {
 		if (clientRepository.existsByEmail(clientDto.getEmail())) {
 	        throw new InvalidPatchRequestException("Email already in use");
 	    }
-	    if (clientRepository.existsByPhone(clientDto.getPhone())) {
-	        throw new InvalidPatchRequestException("Phone number already in use");
-	    }
+	    
+		validateClientPhone(clientDto.getPhone(), null);
 		
 		ClientEntity savedClientEntity = clientRepository.save(clientEntityMapper.apply(clientDto));
 		ClientDto savedClientDto = clientDtoMapper.apply(savedClientEntity);
@@ -95,19 +94,34 @@ public class ClientService {
 		return savedClientDto;
 	}
 
-    public List<ClientDto> getClientsByEmail(String email) {
-        return clientRepository.findByEmail(email)
-        		.stream()
-				.map(clientDtoMapper)
-				.toList();
+    public ClientDto getClientByEmail(String email) {
+    	List<ClientDto> clientDtoList = clientRepository.findByEmail(email)
+    			.stream()
+    			.map(clientDtoMapper)
+    			.toList();
+    	
+    	int clientDtoListSize = clientDtoList.size();
+    	
+    	if (clientDtoListSize == 0) {
+    		log.warn("Client email not found");
+            throw new ResourceNotFoundException("Could not find specified client (email : " + email + ")");
+    	}
+        return clientDtoList.get(0);
     }
 
-    public List<ClientDto> getClientsByPhone(String phone) {
-    	return clientRepository.findByPhone(phone)
-        		.stream()
-				.map(clientDtoMapper)
-				.toList();
-        
+    public ClientDto getClientByPhone(String phone) {
+    	List<ClientDto> clientDtoList = clientRepository.findByPhone(phone)
+    			.stream()
+    			.map(clientDtoMapper)
+    			.toList();
+    	
+    	int clientDtoListSize = clientDtoList.size();
+    	
+    	if (clientDtoListSize == 0) {
+    		log.warn("Client phone not found");
+            throw new ResourceNotFoundException("Could not find specified client (phone : " + phone + ")");
+    	}
+    	return clientDtoList.get(0);
     }
     
     public ClientDto patchClient(Long id, Map<String, Object> updates) {
@@ -116,8 +130,13 @@ public class ClientService {
         ClientEntity clientEntity = clientRepository.findById(id)
             .orElseThrow(() -> {
                 log.warn("Client ID {} not found", id);
-                return new ResourceNotFoundException("Could not find specified client");
+                throw new ResourceNotFoundException("Could not find specified client (id : " + id + ")");
             });
+        
+        Object phoneObject = updates.get("phone");
+        if (phoneObject != null && phoneObject instanceof String phoneString) {
+        	validateClientPhone(phoneString, id);
+        }
         
         updates.forEach((key, value) -> {
         	
@@ -127,28 +146,6 @@ public class ClientService {
         	    log.warn("Attempt to patch patch-prohibited or unknown field '{}'", key);
         	    throw new InvalidPatchRequestException("Patch-prohibited or unknown field (" + key + ")");
         	}
-            
-            if ("email".equals(key)) {
-            	if (!(value instanceof String email) || !emailUtil.isValidEmail(email)) {
-                    log.warn("Invalid email format in patch request");
-                    throw new InvalidPatchRequestException("Invalid email format");
-                }
-            	else if (clientRepository.existsByEmailAndIdNot(email, id)) {
-                    log.warn("Email is already in use");
-                    throw new InvalidPatchRequestException("Email already in use");
-                }
-            }
-            
-            if ("phone".equals(key)) {
-            	if (!(value instanceof String phone) || !phoneUtil.isValidPhoneNumber(phone)) {
-                    log.warn("Invalid phone format in patch request");
-                    throw new InvalidPatchRequestException("Invalid phone format");
-                }
-            	else if (clientRepository.existsByPhoneAndIdNot(phone, id)) {
-                    log.warn("Phone is already in use");
-                    throw new InvalidPatchRequestException("Phone already in use");
-                }
-            }
                         
             clientEntityField.setAccessible(true);
             Class<?> expectedType = clientEntityField.getType();
@@ -156,7 +153,7 @@ public class ClientService {
             try {
                 ReflectionUtils.setField(clientEntityField, clientEntity, 
                 		objectMapper.convertValue(value, expectedType));
-                log.debug("Patched field '{}' with value", key);
+                log.debug("Patched field '{}' with specified value", key);
             } catch (IllegalArgumentException e) {
             	log.error("Type mismatch on field '{}' while patching client ID {}", key, id, e);
             	throw new InvalidPatchRequestException("Type mismatch on field '" + key +
@@ -164,10 +161,22 @@ public class ClientService {
             		    ", but received: " + value.getClass().getSimpleName());
             }
         });
-
-        ClientDto result = clientDtoMapper.apply(clientRepository.save(clientEntity));
+        
+        validator.validate(clientEntity);
+        ClientDto savedClientDto = clientDtoMapper.apply(clientRepository.save(clientEntity));
         log.info("Successfully patched client ID {}", id);
-        return result;
-    }	
+        return savedClientDto;
+    }
+    
+    private void validateClientPhone(String phone, Long id) {
+    	if (!phoneUtil.isValidPhoneNumber(phone)) {
+            log.warn("Invalid phone format in patch request");
+            throw new InvalidPatchRequestException("Invalid phone format");
+        }
+    	else if (clientRepository.existsByPhoneAndIdNot(phone, id)) {
+            log.warn("Phone is already in use");
+            throw new InvalidPatchRequestException("Phone already in use");
+        }
+    }
 
 }

@@ -7,11 +7,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Size;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
 public class ClientDto {
 
+	@Null
 	private Long id;
 	@NotBlank
 	private String firstname;

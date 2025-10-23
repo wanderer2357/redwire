@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,7 +18,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import wanderer2357.redwire.annotation.Patchable;
 import wanderer2357.redwire.enumeration.StatusEnum;
@@ -32,7 +30,6 @@ import wanderer2357.redwire.enumeration.StatusEnum;
 	    @Index(name = "idx_id_phone", columnList = "id, phone"),
 	    @Index(name = "idx_email_phone", columnList = "email, phone")
 	})
-@Embeddable
 public class ClientEntity {
 
 	@Id
@@ -61,13 +58,12 @@ public class ClientEntity {
 	@Column(nullable = false, unique = true)
 	@NotBlank
 	@Size(max = 20)
-	@Pattern(regexp = "^[0-9]+$", message = "Phone number must be numeric")
 	@Patchable
 	private String phone;
 	
 	@Column(nullable = false)
 	@NotBlank
-	@Size(max = 128)
+	@Size(max = 255)
 	private String passwordHash;
 	
 	@Column(nullable = false)
@@ -94,7 +90,7 @@ public class ClientEntity {
 	public ClientEntity(@NotBlank @Size(max=50) String firstname,
 			@NotBlank @Size(max=50) String lastname,
 			@NotBlank @Email @Size(max=254) String email,
-			@NotBlank @Pattern(regexp = "^[0-9]+$", message = "Phone number must be numeric") @Size(max=20) String phone,
+			@NotBlank @Size(max=20) String phone,
 			@NotBlank @Size(max=255) String passwordHash) {
 		this.firstname = firstname;
 		this.lastname = lastname;
@@ -135,7 +131,7 @@ public class ClientEntity {
 		return phone;
 	}
 
-	public void setPhone(@NotBlank @Pattern(regexp = "^[0-9]+$", message = "Phone number must be numeric") @Size(max=20) String phone) {
+	public void setPhone(@NotBlank @Size(max=20) String phone) {
 		this.phone = phone;
 	}
 
