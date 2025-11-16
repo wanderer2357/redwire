@@ -3,22 +3,36 @@ package wanderer2357.redwire.dto;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Null;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
 public class SupplierDto {
 	
+	@Null
 	private Long id;
+	@NotBlank
 	private String companyName;
+	@NotBlank
 	private String street1;
 	private String street2;
+	@NotBlank
 	private String postalCode;
 	private String regionStateProvince;
+	@NotBlank
 	private String country;
+	@Email
 	private String email;
+	@NotBlank
 	private String phone;
+	@NotBlank
 	private String representativeFirstname;
+	@NotBlank
 	private String representativeLastname;
+	@NotBlank
 	private String representativeEmail;
+	@NotBlank
 	private String representativePhone;
 	private StatusEnum status = StatusEnum.ACTIVE;
 	private LocalDateTime createdAt;

@@ -20,7 +20,8 @@ import jakarta.validation.Validator;
 import wanderer2357.redwire.annotation.Patchable;
 import wanderer2357.redwire.dto.ClientDto;
 import wanderer2357.redwire.exception.InvalidPatchRequestException;
-import wanderer2357.redwire.exception.ResourceNotFoundException;
+import wanderer2357.redwire.exception.InvalidSaveClientRequestException;
+import wanderer2357.redwire.exception.ClientNotFoundException;
 import wanderer2357.redwire.mapper.ClientDtoMapper;
 import wanderer2357.redwire.mapper.ClientEntityMapper;
 import wanderer2357.redwire.model.ClientEntity;
@@ -67,7 +68,7 @@ public class ClientService {
 	    PATCH_ALLOWED_FIELDS = Collections.unmodifiableMap(patchMap);
 	}
 	
-	public Page<ClientDto> getAllClients(Pageable pageable) {
+	public Page<ClientDto> getClientPage(Pageable pageable) {
 	    return clientRepository.findAll(pageable)
 	            .map(clientDtoMapper);
 	}
@@ -77,13 +78,17 @@ public class ClientService {
         		.map(clientDtoMapper)
         		.orElseThrow(() -> {
                     log.warn("Client ID {} not found", id);
-                    throw new ResourceNotFoundException("Could not find specified client (id : " + id + ")");
+                    throw new ClientNotFoundException("Could not find specified client (id : " + id + ")");
                 });
     }
 	
 	public ClientDto saveClient(@Valid ClientDto clientDto) {
 		if (clientRepository.existsByEmail(clientDto.getEmail())) {
-	        throw new InvalidPatchRequestException("Email already in use");
+	        throw new InvalidSaveClientRequestException("Email already in use");
+	    }
+		
+		if (clientRepository.existsByPhone(clientDto.getPhone())) {
+	        throw new InvalidSaveClientRequestException("Phone already in use");
 	    }
 	    
 		validateClientPhone(clientDto.getPhone(), null);
@@ -104,7 +109,7 @@ public class ClientService {
     	
     	if (clientDtoListSize == 0) {
     		log.warn("Client email not found");
-            throw new ResourceNotFoundException("Could not find specified client (email : " + email + ")");
+            throw new ClientNotFoundException("Could not find specified client (email : " + email + ")");
     	}
         return clientDtoList.get(0);
     }
@@ -119,7 +124,7 @@ public class ClientService {
     	
     	if (clientDtoListSize == 0) {
     		log.warn("Client phone not found");
-            throw new ResourceNotFoundException("Could not find specified client (phone : " + phone + ")");
+            throw new ClientNotFoundException("Could not find specified client (phone : " + phone + ")");
     	}
     	return clientDtoList.get(0);
     }
@@ -130,7 +135,7 @@ public class ClientService {
         ClientEntity clientEntity = clientRepository.findById(id)
             .orElseThrow(() -> {
                 log.warn("Client ID {} not found", id);
-                throw new ResourceNotFoundException("Could not find specified client (id : " + id + ")");
+                throw new ClientNotFoundException("Could not find specified client (id : " + id + ")");
             });
         
         Object phoneObject = updates.get("phone");

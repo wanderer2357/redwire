@@ -35,8 +35,8 @@ public class RedwireExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(payload);
     }
     
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<RedwireResponsePayload<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler(ClientNotFoundException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleResourceNotFound(ClientNotFoundException ex) {
         RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import wanderer2357.redwire.dto.ClientDto;
 import wanderer2357.redwire.payload.RedwireResponsePayload;
 import wanderer2357.redwire.service.ClientService;
@@ -52,7 +53,7 @@ public class ClientController implements RedwireApiBaseController {
     public ResponseEntity<RedwireResponsePayload<Page<ClientDto>>> 
 	getClients(@RequestBody @PageableDefault(size = 10, sort = "lastName") Pageable pageable) {
 		
-        Page<ClientDto> clientDtoPage = clientService.getAllClients(pageable);
+        Page<ClientDto> clientDtoPage = clientService.getClientPage(pageable);
         
         RedwireResponsePayload<Page<ClientDto>> payload = new RedwireResponsePayload<Page<ClientDto>>(
                 HttpStatus.OK,
@@ -65,7 +66,7 @@ public class ClientController implements RedwireApiBaseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<RedwireResponsePayload<ClientDto>> getClientById(
-            @PathVariable @NotNull @Min(1) Long id) {
+            @PathVariable @NotNull @Positive Long id) {
 
         ClientDto clientDto = clientService.getClientById(id);
         

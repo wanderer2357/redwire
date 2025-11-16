@@ -1,10 +1,10 @@
 package wanderer2357.redwire.exception;
 
-public class ResourceNotFoundException extends RuntimeException {
+public class ClientNotFoundException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public ResourceNotFoundException(String message) {
+    public ClientNotFoundException(String message) {
         super(message);
     }
 }
