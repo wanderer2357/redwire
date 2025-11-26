@@ -22,6 +22,7 @@ public class SupplierDto {
 	private String regionStateProvince;
 	@NotBlank
 	private String country;
+	@NotBlank
 	@Email
 	private String email;
 	@NotBlank

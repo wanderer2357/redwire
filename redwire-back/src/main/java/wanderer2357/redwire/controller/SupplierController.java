@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import org.springframework.http.HttpStatus;
 
 import wanderer2357.redwire.dto.SupplierDto;
@@ -31,23 +37,10 @@ public class SupplierController implements RedwireApiBaseController{
 		this.supplierService = supplierService;
 	}
 	
-	@PostMapping
-	public ResponseEntity<RedwireResponsePayload<SupplierDto>> 
-	saveSupplier(@RequestBody SupplierDto supplierDto) {
-		
-		SupplierDto savedSupplierDto = new SupplierDto();
-		
-		RedwireResponsePayload<SupplierDto> payload = new RedwireResponsePayload<SupplierDto>
-		(HttpStatus.CREATED,
-				"Saved supplier",
-				savedSupplierDto);
-		return ResponseEntity.status(HttpStatus.CREATED).body(payload);
-	}
-	
 	@GetMapping
 	public ResponseEntity<RedwireResponsePayload<Page<SupplierDto>>> 
-	getSuppliers(@RequestBody @PageableDefault(size=10, sort="companyName") Pageable pageable) {
-		Page<SupplierDto> supplierDtoPage = null;
+	getSuppliers(@PageableDefault(size=10, sort="companyName") Pageable pageable) {
+		Page<SupplierDto> supplierDtoPage = supplierService.getSupplierPage(pageable);
 		
 		RedwireResponsePayload<Page<SupplierDto>> payload = new RedwireResponsePayload<Page<SupplierDto>>
 		(HttpStatus.OK,
@@ -59,24 +52,65 @@ public class SupplierController implements RedwireApiBaseController{
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<RedwireResponsePayload<SupplierDto>>
-	getSupplierById(@PathVariable Long id) {
+	getSupplierById(@PathVariable @NotNull @Positive Long id) {
 		
-		SupplierDto supplierDto = null;
+		SupplierDto supplierDto = supplierService.getSupplierById(id);
 		
 		RedwireResponsePayload<SupplierDto> payload = new RedwireResponsePayload<SupplierDto>
 		(HttpStatus.OK,
-		"Fetched supplier",
+		"Fetched supplier using ID",
 		supplierDto);
 		
 		return ResponseEntity.ok(payload);
 	}
 	
+	@GetMapping("/{email}/email")
+	public ResponseEntity<RedwireResponsePayload<SupplierDto>>
+	getSupplierByEmail(@PathVariable @NotBlank String email) {
+		
+		SupplierDto supplierDto = supplierService.getSupplierByEmail(email);
+		
+		RedwireResponsePayload<SupplierDto> payload = new RedwireResponsePayload<SupplierDto>
+		(HttpStatus.OK,
+		"Fetched supplier using email",
+		supplierDto);
+		
+		return ResponseEntity.ok(payload);
+	}
+	
+	@GetMapping("/{phone}/phone")
+	public ResponseEntity<RedwireResponsePayload<SupplierDto>>
+	getSupplierByPhone(@PathVariable @NotBlank String phone) {
+		
+		SupplierDto supplierDto = supplierService.getSupplierByPhone(phone);
+		
+		RedwireResponsePayload<SupplierDto> payload = new RedwireResponsePayload<SupplierDto>
+		(HttpStatus.OK,
+		"Fetched supplier using phone",
+		supplierDto);
+		
+		return ResponseEntity.ok(payload);
+	}
+	
+	@PostMapping
+	public ResponseEntity<RedwireResponsePayload<SupplierDto>> 
+	saveSupplier(@RequestBody SupplierDto supplierDto) {
+		
+		SupplierDto savedSupplierDto = supplierService.saveSupplier(supplierDto);
+		
+		RedwireResponsePayload<SupplierDto> payload = new RedwireResponsePayload<SupplierDto>
+		(HttpStatus.CREATED,
+				"Saved supplier",
+				savedSupplierDto);
+		return ResponseEntity.status(HttpStatus.CREATED).body(payload);
+	}
+	
 	@PatchMapping("/{id}")
 	public ResponseEntity<RedwireResponsePayload<SupplierDto>>
-	patchSupplier(@PathVariable Long id,
-			@RequestBody Map<String, Object> updates) {
+	patchSupplier(@PathVariable @Positive Long id,
+			@RequestBody @NotNull Map<String, Object> updates) {
 		
-		SupplierDto supplierDto = null;
+		SupplierDto supplierDto = supplierService.patchSupplier(id, updates);
 		
 		RedwireResponsePayload<SupplierDto> payload = new RedwireResponsePayload<SupplierDto>(
                 HttpStatus.OK,
@@ -84,6 +118,6 @@ public class SupplierController implements RedwireApiBaseController{
                 supplierDto
         );
 		
-		return null;
+		return ResponseEntity.ok(payload);
 	}
 }

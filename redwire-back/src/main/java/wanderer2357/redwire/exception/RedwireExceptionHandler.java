@@ -15,56 +15,65 @@ public class RedwireExceptionHandler {
 	
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<RedwireResponsePayload<Object>> handleGenericException(Exception ex) {
-	    RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
-	            HttpStatus.INTERNAL_SERVER_ERROR,
-	            "UNEXPECTED EXCEPTION",
-	            null
-	    );
-	    log.error("UNEXPECTED EXCEPTION", ex);
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(payload);
+	    return handleResponse(ex, "UNEXPECTED EXCEPTION", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<RedwireResponsePayload<Object>> handleRuntimeException(RuntimeException ex) {
-        RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                ex.getMessage(),
-                null
-        );
-        log.error("RUNTIME EXCEPTION", ex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(payload);
+        return handleResponse(ex, "RUNTIME EXCEPTION", HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
     @ExceptionHandler(ClientNotFoundException.class)
-    public ResponseEntity<RedwireResponsePayload<Object>> handleResourceNotFound(ClientNotFoundException ex) {
-        RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
-                HttpStatus.NOT_FOUND,
-                ex.getMessage(),
-                null
-        );
-        log.error("RESOURCE NOT FOUND EXCEPTION", ex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(payload);
+    public ResponseEntity<RedwireResponsePayload<Object>> handleClientNotFoundException(ClientNotFoundException ex) {
+    	return handleResponse(ex, "CLIENT RESOURCE NOT FOUND EXCEPTION", HttpStatus.NOT_FOUND);
     }
     
-    @ExceptionHandler(InvalidPostRequestException.class)
-    public ResponseEntity<RedwireResponsePayload<Object>> handlePostRequestException(InvalidPostRequestException ex) {
-        RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage(),
-                null
-        );
-        log.error("POST REQUEST EXCEPTION", ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payload);
+    @ExceptionHandler(InvalidSaveClientRequestException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidSaveClientRequestException(InvalidSaveClientRequestException ex) {
+    	return handleResponse(ex, "SAVE CLIENT REQUEST EXCEPTION", HttpStatus.BAD_REQUEST);
     }
     
-    @ExceptionHandler(InvalidPatchRequestException.class)
-    public ResponseEntity<RedwireResponsePayload<Object>> handlePatchRequestException(InvalidPatchRequestException ex) {
-        RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
-                HttpStatus.BAD_REQUEST,
+    @ExceptionHandler(InvalidPatchClientRequestException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidPatchClientRequestException(InvalidPatchClientRequestException ex) {
+    	return handleResponse(ex, "PATCH CLIENT REQUEST EXCEPTION", HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler(InvalidClientPhoneException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidClientPhoneException(InvalidClientPhoneException ex) {
+        return handleResponse(ex, "INVALID CLIENT PHONE EXCEPTION", HttpStatus.BAD_REQUEST);
+
+    }
+    
+    @ExceptionHandler(SupplierNotFoundException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleSupplierNotFoundException(SupplierNotFoundException ex) {
+        return handleResponse(ex, "SUPPLIER RESOURCE NOT FOUND EXCEPTION", HttpStatus.NOT_FOUND);
+    }
+    
+    @ExceptionHandler(InvalidSaveSupplierRequestException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidSaveSupplierRequestException(InvalidSaveSupplierRequestException ex) {
+        return handleResponse(ex, "SAVE SUPPLIER REQUEST EXCEPTION", HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler(InvalidPatchSupplierRequestException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidPatchSupplierRequestException(InvalidPatchSupplierRequestException ex) {
+        return handleResponse(ex, "PATCH SUPPLIER REQUEST EXCEPTION", HttpStatus.BAD_REQUEST);
+
+    }
+    
+    @ExceptionHandler(InvalidSupplierPhoneException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidSupplierPhoneException(InvalidSupplierPhoneException ex) {
+        return handleResponse(ex, "INVALID SUPPLIER PHONE EXCEPTION", HttpStatus.BAD_REQUEST);
+        
+    }
+    
+    private ResponseEntity<RedwireResponsePayload<Object>>
+    handleResponse(Exception ex, String errorLog, HttpStatus httpStatus) {
+    	RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(
+    			httpStatus,
                 ex.getMessage(),
                 null
         );
-        log.error("PATCH REQUEST EXCEPTION", ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(payload);
+        log.error(errorLog, ex);
+        return ResponseEntity.status(httpStatus).body(payload);
     }
 }

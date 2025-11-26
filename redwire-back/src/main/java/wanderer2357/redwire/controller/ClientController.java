@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import wanderer2357.redwire.dto.ClientDto;
@@ -35,23 +37,9 @@ public class ClientController implements RedwireApiBaseController {
 		this.clientService = clientService;
 	}
 	
-	@PostMapping
-	public ResponseEntity<RedwireResponsePayload<ClientDto>> 
-	saveClient(@RequestBody @Valid ClientDto clientDto) {
-		
-		ClientDto savedClientDto = clientService.saveClient(clientDto);
-		
-		RedwireResponsePayload<ClientDto> payload = new RedwireResponsePayload<ClientDto>(
-				HttpStatus.CREATED,
-				"Saved client",
-				savedClientDto);
-		
-		return ResponseEntity.status(HttpStatus.CREATED).body(payload);
-	}
-	
 	@GetMapping
     public ResponseEntity<RedwireResponsePayload<Page<ClientDto>>> 
-	getClients(@RequestBody @PageableDefault(size = 10, sort = "lastName") Pageable pageable) {
+	getClients(@PageableDefault(size = 10, sort = "lastName") Pageable pageable) {
 		
         Page<ClientDto> clientDtoPage = clientService.getClientPage(pageable);
         
@@ -72,23 +60,67 @@ public class ClientController implements RedwireApiBaseController {
         
         RedwireResponsePayload<ClientDto> payload = new RedwireResponsePayload<ClientDto>(
                 HttpStatus.OK,
-                "Retrieved client with ID " + id,
+                "Fetched client using ID ",
                 clientDto
         );
         
         return ResponseEntity.ok(payload);
     }
     
+    @GetMapping("/{email}/email")
+    public ResponseEntity<RedwireResponsePayload<ClientDto>> getClientByEmail(
+            @PathVariable @NotBlank String email) {
+
+        ClientDto clientDto = clientService.getClientByEmail(email);
+        
+        RedwireResponsePayload<ClientDto> payload = new RedwireResponsePayload<ClientDto>(
+                HttpStatus.OK,
+                "Retrieved client using email",
+                clientDto
+        );
+        
+        return ResponseEntity.ok(payload);
+    }
+    
+    @GetMapping("/{phone}/phone")
+    public ResponseEntity<RedwireResponsePayload<ClientDto>> getClientByPhone(
+            @PathVariable @NotBlank String phone) {
+
+        ClientDto clientDto = clientService.getClientByPhone(phone);
+        
+        RedwireResponsePayload<ClientDto> payload = new RedwireResponsePayload<ClientDto>(
+                HttpStatus.OK,
+                "Retrieved client using phone",
+                clientDto
+        );
+        
+        return ResponseEntity.ok(payload);
+    }
+	
+	@PostMapping
+	public ResponseEntity<RedwireResponsePayload<ClientDto>> 
+	saveClient(@RequestBody ClientDto clientDto) {
+		
+		ClientDto savedClientDto = clientService.saveClient(clientDto);
+		
+		RedwireResponsePayload<ClientDto> payload = new RedwireResponsePayload<ClientDto>(
+				HttpStatus.CREATED,
+				"Saved client",
+				savedClientDto);
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(payload);
+	}
+    
     @PatchMapping("/{id}")
     public ResponseEntity<RedwireResponsePayload<ClientDto>> patchClientById(
-            @PathVariable @NotNull @Min(1) Long id,
+            @PathVariable @Positive Long id,
             @RequestBody @NotNull Map<String, Object> updates) {
     	
     	ClientDto clientDto = clientService.patchClient(id, updates);
         
         RedwireResponsePayload<ClientDto> payload = new RedwireResponsePayload<ClientDto>(
                 HttpStatus.OK,
-                "Patched client with ID " + id,
+                "Patched client",
                 clientDto
         );
         

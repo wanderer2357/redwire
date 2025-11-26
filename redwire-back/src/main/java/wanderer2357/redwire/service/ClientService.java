@@ -19,9 +19,10 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import wanderer2357.redwire.annotation.Patchable;
 import wanderer2357.redwire.dto.ClientDto;
-import wanderer2357.redwire.exception.InvalidPatchRequestException;
+import wanderer2357.redwire.exception.InvalidPatchClientRequestException;
 import wanderer2357.redwire.exception.InvalidSaveClientRequestException;
 import wanderer2357.redwire.exception.ClientNotFoundException;
+import wanderer2357.redwire.exception.InvalidClientPhoneException;
 import wanderer2357.redwire.mapper.ClientDtoMapper;
 import wanderer2357.redwire.mapper.ClientEntityMapper;
 import wanderer2357.redwire.model.ClientEntity;
@@ -82,32 +83,13 @@ public class ClientService {
                 });
     }
 	
-	public ClientDto saveClient(@Valid ClientDto clientDto) {
-		if (clientRepository.existsByEmail(clientDto.getEmail())) {
-	        throw new InvalidSaveClientRequestException("Email already in use");
-	    }
-		
-		if (clientRepository.existsByPhone(clientDto.getPhone())) {
-	        throw new InvalidSaveClientRequestException("Phone already in use");
-	    }
-	    
-		validateClientPhone(clientDto.getPhone(), null);
-		
-		ClientEntity savedClientEntity = clientRepository.save(clientEntityMapper.apply(clientDto));
-		ClientDto savedClientDto = clientDtoMapper.apply(savedClientEntity);
-		log.debug("Saved new client with id {}", savedClientDto.getId());
-		return savedClientDto;
-	}
-
-    public ClientDto getClientByEmail(String email) {
+	public ClientDto getClientByEmail(String email) {
     	List<ClientDto> clientDtoList = clientRepository.findByEmail(email)
     			.stream()
     			.map(clientDtoMapper)
     			.toList();
-    	
-    	int clientDtoListSize = clientDtoList.size();
-    	
-    	if (clientDtoListSize == 0) {
+    	    	
+    	if (clientDtoList.isEmpty()) {
     		log.warn("Client email not found");
             throw new ClientNotFoundException("Could not find specified client (email : " + email + ")");
     	}
@@ -120,14 +102,31 @@ public class ClientService {
     			.map(clientDtoMapper)
     			.toList();
     	
-    	int clientDtoListSize = clientDtoList.size();
-    	
-    	if (clientDtoListSize == 0) {
+    	if (clientDtoList.isEmpty()) {
     		log.warn("Client phone not found");
             throw new ClientNotFoundException("Could not find specified client (phone : " + phone + ")");
     	}
     	return clientDtoList.get(0);
     }
+	
+	public ClientDto saveClient(@Valid ClientDto clientDto) {
+		if (clientRepository.existsByEmail(clientDto.getEmail())) {
+			log.warn("Aborting client save: email already in use");
+	        throw new InvalidSaveClientRequestException("Email already in use");
+	    }
+		
+		if (clientRepository.existsByPhone(clientDto.getPhone())) {
+			log.warn("Aborting client save: phone already in use");
+	        throw new InvalidSaveClientRequestException("Phone already in use");
+	    }
+	    
+		validateClientPhone(clientDto.getPhone(), null);
+		
+		ClientEntity savedClientEntity = clientRepository.save(clientEntityMapper.apply(clientDto));
+		ClientDto savedClientDto = clientDtoMapper.apply(savedClientEntity);
+		log.debug("Saved new client with id {}", savedClientDto.getId());
+		return savedClientDto;
+	}
     
     public ClientDto patchClient(Long id, Map<String, Object> updates) {
     	log.info("Patching client with ID {}. Fields: {}", id, updates.keySet());
@@ -149,7 +148,7 @@ public class ClientService {
         	
         	if (clientEntityField == null) {
         	    log.warn("Attempt to patch patch-prohibited or unknown field '{}'", key);
-        	    throw new InvalidPatchRequestException("Patch-prohibited or unknown field (" + key + ")");
+        	    throw new InvalidPatchClientRequestException("Patch-prohibited or unknown field (" + key + ")");
         	}
                         
             clientEntityField.setAccessible(true);
@@ -161,7 +160,7 @@ public class ClientService {
                 log.debug("Patched field '{}' with specified value", key);
             } catch (IllegalArgumentException e) {
             	log.error("Type mismatch on field '{}' while patching client ID {}", key, id, e);
-            	throw new InvalidPatchRequestException("Type mismatch on field '" + key +
+            	throw new InvalidPatchClientRequestException("Type mismatch on field '" + key +
             		    "'. Expected: " + expectedType.getSimpleName() +
             		    ", but received: " + value.getClass().getSimpleName());
             }
@@ -175,12 +174,12 @@ public class ClientService {
     
     private void validateClientPhone(String phone, Long id) {
     	if (!phoneUtil.isValidPhoneNumber(phone)) {
-            log.warn("Invalid phone format in patch request");
-            throw new InvalidPatchRequestException("Invalid phone format");
+            log.warn("Invalid client phone format '{}'", phone);
+            throw new InvalidClientPhoneException("Invalid client phone format");
         }
     	else if (clientRepository.existsByPhoneAndIdNot(phone, id)) {
-            log.warn("Phone is already in use");
-            throw new InvalidPatchRequestException("Phone already in use");
+            log.warn("Client phone is already in use");
+            throw new InvalidClientPhoneException("Client phone already in use");
         }
     }
 
