@@ -66,6 +66,16 @@ public class RedwireExceptionHandler {
         
     }
     
+    @ExceptionHandler(ArticleNotFoundException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleArticleNotFoundException(ArticleNotFoundException ex) {
+        return handleResponse(ex, "ARTICLE RESOURCE NOT FOUND EXCEPTION", HttpStatus.NOT_FOUND);
+    }
+    
+    @ExceptionHandler(InvalidSaveArticleRequestException.class)
+    public ResponseEntity<RedwireResponsePayload<Object>> handleInvalidSaveArticleRequestException(InvalidSaveArticleRequestException ex) {
+        return handleResponse(ex, "SAVE ARTICLE REQUEST EXCEPTION", HttpStatus.BAD_REQUEST);
+    }
+    
     private ResponseEntity<RedwireResponsePayload<Object>>
     handleResponse(Exception ex, String errorLog, HttpStatus httpStatus) {
     	RedwireResponsePayload<Object> payload = new RedwireResponsePayload<>(

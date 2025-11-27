@@ -21,6 +21,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import wanderer2357.redwire.annotation.Patchable;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
 @Entity
@@ -43,22 +44,27 @@ public class ArticleEntity {
 	@Column(nullable = false)
 	@NotBlank
 	@Size(max = 50)
+	@Patchable
 	private String label1;
 	
 	@Column(nullable = false)
 	@Size(max = 50)
+	@Patchable
 	private String label2;
 	
 	@Column(nullable = false)
 	@DecimalMin(value = "0.0", inclusive = true)
+	@Patchable
 	private BigDecimal price;
 	
 	@Column(nullable = false)
 	@DecimalMin(value = "0.0", inclusive = true)
+	@Patchable
 	private BigDecimal costPrice;
 	
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
+	@Patchable
 	private StatusEnum status = StatusEnum.ACTIVE;
 	
 	@Column(nullable = false, updatable = false)

@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
@@ -16,9 +17,11 @@ public class SupplierDto {
 	private String companyName;
 	@NotBlank
 	private String street1;
+	@NotNull
 	private String street2;
 	@NotBlank
 	private String postalCode;
+	@NotNull
 	private String regionStateProvince;
 	@NotBlank
 	private String country;

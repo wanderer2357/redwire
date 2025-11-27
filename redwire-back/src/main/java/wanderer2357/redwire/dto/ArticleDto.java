@@ -3,17 +3,28 @@ package wanderer2357.redwire.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Positive;
 import wanderer2357.redwire.enumeration.StatusEnum;
 
 public class ArticleDto {
 	
+	@Null
 	private Long id;
+	@NotBlank
 	private String code;
+	@NotBlank
 	private String label1;
+	@NotNull
 	private String label2;
+	@Positive
 	private BigDecimal price;
+	@Positive
 	private BigDecimal costPrice;
+	@NotNull
 	private StatusEnum status = StatusEnum.ACTIVE;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
